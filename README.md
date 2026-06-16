@@ -116,14 +116,20 @@ Java 调用：
 ```java
 import com.xinyi.timestats.TimeStats;
 import com.xinyi.timestats.model.MeasureDuration;
+import com.xinyi.timestats.model.MeasureResult;
 
 private void test() {
     MeasureDuration duration = TimeStats.measureTime(() -> heavyWork());
     LogUtil.d(duration.toReadableString());
+
+    MeasureResult<Integer> result = TimeStats.measureTimeWithResult(() -> computeValue());
+    LogUtil.d("value = " + result.getValue() + ", duration = " + result.getDuration().toMsString());
 }
 ```
 
 ### 2. 测量对象相关操作
+
+Kotlin 调用：
 
 ```kotlin
 val list = mutableListOf<Int>()
@@ -136,7 +142,30 @@ val duration = list.measureTime {
 println("耗时：${duration.toMsString()}")
 ```
 
+Java 调用：
+
+```java
+import com.xinyi.timestats.TimeStats;
+import com.xinyi.timestats.model.MeasureDuration;
+import java.util.ArrayList;
+import java.util.List;
+
+private void test() {
+    List<Integer> list = new ArrayList<>();
+    MeasureDuration duration = TimeStats.measureTime(list, it -> {
+        for (int i = 0; i < 100_000; i++) {
+            it.add(i);
+        }
+    });
+    LogUtil.d(duration.toMsString());
+}
+```
+
 ### 3. 测量协程耗时
+
+> 协程 API（`measureSuspendTime` 等）为 Kotlin 挂起函数设计，**仅适用于 Kotlin**，Java 就使用 `measureTime` 测量同步逻辑。
+
+Kotlin 调用：
 
 ```kotlin
 // 需要在协程作用域内调用
@@ -152,7 +181,7 @@ println("${result.value}, ${result.duration}")
 
 ### 4. 多次采样与统计分析
 
-kotlin 调用：
+Kotlin 调用：
 
 ```kotlin
 val samples = List(100) {
@@ -168,16 +197,20 @@ println("P99：${samples.p99().toReadableString()}")
 Java 调用：
 
 ```java
+import com.xinyi.timestats.TimeStats;
 import com.xinyi.timestats.extenions.MeasureDurationExtension;
 import com.xinyi.timestats.model.MeasureDuration;
+import java.util.ArrayList;
 import java.util.List;
 
-public void test() {
+private void test() {
     List<MeasureDuration> samples = new ArrayList<>();
-    // add ...
-    // 
+    // 多次调用 TimeStats.measureTime(...) 填充 samples
+
     MeasureDuration avg = MeasureDurationExtension.average(samples);
     MeasureDuration p95 = MeasureDurationExtension.p95(samples);
+    LogUtil.d("avg = " + avg.toReadableString());
+    LogUtil.d("p95 = " + p95.toReadableString());
 }
 ```
 
