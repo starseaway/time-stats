@@ -198,8 +198,9 @@ Java 调用：
 
 ```java
 import com.xinyi.timestats.TimeStats;
-import com.xinyi.timestats.extenions.MeasureDurationExtension;
+import com.xinyi.timestats.extensions.MeasureDurationExtension;
 import com.xinyi.timestats.model.MeasureDuration;
+
 import java.util.ArrayList;
 import java.util.List;
 
