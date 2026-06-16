@@ -1,25 +1,22 @@
-package com.xinyi.timestats.extenions
+package com.xinyi.timestats
 
 import com.xinyi.timestats.model.MeasureDuration
 import com.xinyi.timestats.model.MeasureResult
-import kotlin.time.Duration
 
 /**
- * 时间统计扩展函数集
+ * TimeStats 核心测量入口
  *
- * 提供同步代码、协程代码以及对象相关操作的执行耗时统计能力。
+ * 提供同步代码、协程代码以及对象相关操作的耗时统计能力。
  *
- * 所有耗时均基于 [System.nanoTime] 计算，内部统一使用纳秒（ns）存储，
- * 并通过 [MeasureDuration] 提供纳秒、微秒、毫秒、
- * 秒、分钟、小时以及 Kotlin [Duration] 等多种转换方式。
+ * 所有耗时均基于 [System.nanoTime] 计算，统计结果统一使用 [MeasureDuration] 或 [MeasureResult] 表示。
  *
  * @author 新一
  * @date 2026/6/9 11:19
  */
-object TimeStatsExtension {
+object TimeStats {
 
     /**
-     * 统计代码执行耗时
+     * 测量代码执行耗时
      *
      * @param block 执行逻辑
      * @return 耗时信息
@@ -32,7 +29,7 @@ object TimeStatsExtension {
     }
 
     /**
-     * 统计代码执行耗时，并返回执行结果
+     * 测量代码执行耗时，并返回执行结果
      *
      * @param block 执行逻辑
      */
@@ -47,7 +44,7 @@ object TimeStatsExtension {
     }
 
     /**
-     * 统计对象相关操作执行耗时（毫秒）
+     * 测量对象相关操作执行耗时
      *
      * @param block 执行逻辑
      *
@@ -72,7 +69,7 @@ object TimeStatsExtension {
     }
 
     /**
-     * 统计对象相关操作执行耗时（毫秒），并返回执行结果
+     * 测量对象相关操作执行耗时，并返回执行结果
      *
      * @param block 执行逻辑
      *
@@ -80,12 +77,12 @@ object TimeStatsExtension {
      * ```kotlin
      * val numbers = (1..100_000).toList()
      *
-     * val value = numbers.measureTimeWithResult {
+     * val result = numbers.measureTimeWithResult {
      *     it.sum()
      * }
      *
-     * println("sum = ${value.value}")
-     * println("duration = ${value.duration}")
+     * println("sum = ${result.value}")
+     * println("duration = ${result.duration}")
      * ```
      */
     @JvmStatic
@@ -99,7 +96,7 @@ object TimeStatsExtension {
     }
 
     /**
-     * 统计协程代码执行耗时（毫秒）
+     * 测量协程代码执行耗时
      *
      * @param block 执行逻辑
      */
@@ -111,7 +108,7 @@ object TimeStatsExtension {
     }
 
     /**
-     * 统计对象相关协程操作执行耗时（毫秒）
+     * 测量对象相关协程操作执行耗时
      *
      * @param block 执行逻辑
      */
@@ -123,7 +120,7 @@ object TimeStatsExtension {
     }
 
     /**
-     * 统计协程代码执行耗时（毫秒），并返回执行结果
+     * 测量协程代码执行耗时，并返回执行结果
      *
      * @param block 执行逻辑
      */
@@ -136,6 +133,19 @@ object TimeStatsExtension {
             duration = MeasureDuration(System.nanoTime() - start)
         )
     }
+
+    /**
+     * 测量对象相关协程操作执行耗时，并返回执行结果
+     *
+     * @param block 执行逻辑
+     */
+    @JvmStatic
+    suspend inline fun <T, R> T.measureSuspendTimeWithResult(block: suspend (T) -> R): MeasureResult<R> {
+        val start = System.nanoTime()
+        val result = block(this)
+        return MeasureResult(
+            value = result,
+            duration = MeasureDuration(System.nanoTime() - start)
+        )
+    }
 }
-
-

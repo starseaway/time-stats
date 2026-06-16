@@ -6,9 +6,9 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 /**
- * 时间统计结果
+ * 测量得到的耗时模型
  *
- * 以纳秒存储，支持转换为微秒、毫秒、秒、分钟、小时等单位
+ * 以纳秒存储，支持转换为多种时间单位，并可与 Kotlin [Duration] 互转
  *
  * @property nanoTime 纳秒（ns）
  *
@@ -78,7 +78,7 @@ value class MeasureDuration(val nanoTime: Long) : Comparable<MeasureDuration> {
     val hours: Double get() = minutes / 60
 
     /**
-     * to Kotlin Duration
+     * 转为 Kotlin [Duration]
      */
     val duration: Duration get() = nanoTime.toDuration(DurationUnit.NANOSECONDS)
 
