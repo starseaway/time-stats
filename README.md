@@ -232,6 +232,6 @@ private void test() {
 ### V1.0.0 (2026-06-15)
 
 - 首次发布，包含同步与协程耗时统计
-- 统一返回 `MeasureDuration` 耗时模型，并多单位格式化
-- 支持 `MeasureResult` 结果包装
+- 支持统一返回 `MeasureDuration ` 耗时模型，并多单位格式化。
+- 支持返回 `MeasureResult ` 结果包装
 - 支持 Average、Median、P50、P95、P99 统计分析
