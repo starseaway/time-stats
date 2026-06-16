@@ -8,9 +8,9 @@
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
 ![API](https://img.shields.io/badge/API-19%2B-brightgreen)
 
-> Every millisecond tells a story.
+> Every optimization begins with measurement.
 >
-> 每一次优化都始于测量。
+> 每一次优化，都始于对时间的测量。
 
 ## 一、简介
 
@@ -34,36 +34,36 @@ task()
 val cost = System.nanoTime() - start
 ```
 
-随着统计场景增多，时间单位换算、异常处理、协程支持、统计分析等问题也会逐渐出现。
+`TimeStats` 诞生的目的，就是把这些零散且重复的工作统一起来，并专注于耗时统计这一件事情：
 
-`TimeStats` 诞生的目的，就是把这些零散且重复的工作统一起来。
-
-它专注于耗时统计这一件事情，从简单的代码执行时间测量，到平均值、中位数、P95、P99 等性能指标分析。
-
-`TimeStats` 提供统一的时间模型与简洁的 API，帮助开发者专注于性能优化本身。
+提供统一的时间模型与简洁的 API，从简单的代码执行时间测量，到平均值、中位数、P95、P99 等性能指标分析。
 
 ---
 
 ## 二、特性
 
-- 基于 System.nanoTime() 实现高精度时间测量
+- 基于 `System.nanoTime()` 实现高精度时间测量
 - 支持同步代码与协程代码耗时统计
-- 支持执行结果与耗时同时返回
-- 支持异常安全统计
-- 支持 Kotlin Duration 互操作
-- 支持 Average（平均值）、Median（中位数）统计分析
-- 支持 P50、P95、P99 百分位统计分析
-- 零第三方依赖、零运行时依赖
+- 支持执行结果与耗时同时返回（`MeasureResult`）
+- 支持 `MeasureDuration` 与 Kotlin `Duration` 互操作
+- 支持 Average、Median、P50、P95、P99 统计分析
+- 零第三方运行时依赖
 
 ## 三、SDK 适用范围
 
-* Android SDK 版本：Min SDK 19（Android 4.4）及以上
+| 项目         | 要求                                      |
+|------------|-----------------------------------------|
+| Min SDK    | 19（Android 4.4）及以上                      |
+| JVM Target | 1.8                                     |
+| Kotlin     | 1.6+（使用协程 API 时需要 `kotlinx-coroutines`） |
 
 ---
 
 ## 四、集成方式
 
 ### 1. 添加仓库
+
+在项目根 `settings.gradle` 或 `build.gradle` 中配置 JitPack：
 
 ```groovy
 maven {
@@ -89,7 +89,97 @@ dependencies {
 }
 ```
 
+---
+
 ## 五、快速开始
+
+### 1. 测量同步代码耗时
+
+Kotlin 调用：
+
+```kotlin
+// 仅测量耗时
+val duration = measureTime {
+    heavyWork()
+}
+println(duration.toReadableString())
+
+// 同时获取执行结果
+val result = measureTimeWithResult {
+    computeValue()
+}
+println("value = ${result.value}, duration = ${result.duration.toMsString()}")
+```
+
+Java 调用：
+
+```java
+import com.xinyi.timestats.TimeStats;
+import com.xinyi.timestats.model.MeasureDuration;
+
+private void test() {
+    MeasureDuration duration = TimeStats.measureTime(() -> heavyWork());
+    LogUtil.d(duration.toReadableString());
+}
+```
+
+### 2. 测量对象相关操作
+
+```kotlin
+val list = mutableListOf<Int>()
+
+val duration = list.measureTime {
+    repeat(100_000) { index ->
+        it.add(index)
+    }
+}
+println("耗时：${duration.toMsString()}")
+```
+
+### 3. 测量协程耗时
+
+```kotlin
+// 需要在协程作用域内调用
+val duration = measureSuspendTime {
+    fetchRemoteData()
+}
+
+val result = apiClient.measureSuspendTimeWithResult {
+    it.request()
+}
+println("${result.value}, ${result.duration}")
+```
+
+### 4. 多次采样与统计分析
+
+kotlin 调用：
+
+```kotlin
+val samples = List(100) {
+    measureTime { targetTask() }
+}
+
+println("平均：${samples.average().toReadableString()}")
+println("中位数：${samples.median().toReadableString()}")
+println("P95：${samples.p95().toReadableString()}")
+println("P99：${samples.p99().toReadableString()}")
+```
+
+Java 调用：
+
+```java
+import com.xinyi.timestats.extenions.MeasureDurationExtension;
+import com.xinyi.timestats.model.MeasureDuration;
+import java.util.List;
+
+public void test() {
+    List<MeasureDuration> samples = new ArrayList<>();
+    // add ...
+    // 
+    MeasureDuration avg = MeasureDurationExtension.average(samples);
+    MeasureDuration p95 = MeasureDurationExtension.p95(samples);
+}
+```
 
 ---
 
@@ -101,10 +191,13 @@ dependencies {
 
 `TimeStats` 希望成为这个过程中的第一步。
 
+---
+
 ## 七、版本记录
 
 ### V1.0.0 (2026-06-15)
 
 - 首次发布，提供同步与协程耗时统计
-- 提供 MeasureDuration 时间模型
-- 支持 Average、Median、P95、P99 等统计分析
+- 提供 `MeasureDuration` 耗时模型与多单位格式化
+- 提供 `MeasureResult` 结果包装
+- 支持 Average、Median、P50、P95、P99 统计分析
