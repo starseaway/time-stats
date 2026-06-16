@@ -1,6 +1,6 @@
 @file:JvmName("MeasureDurationExtension")
 
-package com.xinyi.timestats.extenions
+package com.xinyi.timestats.extensions
 
 import com.xinyi.timestats.model.MeasureDuration
 
